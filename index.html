@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Lookup</title>
+    <script>
+        function fetchOrderDetails() {
+            const orderID = document.getElementById("orderID").value;
+
+            fetch(`/getorder?orderID=${orderID}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("orderDetails").innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                document.getElementById("orderDetails").innerText = 'Error fetching order details.';
+            });
+
+            return false; // чтобы предотвратить перезагрузку страницы
+        }
+    </script>
+</head>
+<body>
+    <h1>Order Lookup</h1>
+    <form onsubmit="return fetchOrderDetails();">
+        <label for="orderID">Order ID:</label>
+        <input type="text" id="orderID" name="orderID">
+        <input type="submit" value="Lookup">
+    </form>
+    <pre id="orderDetails"></pre>
+</body>
+</html>
