@@ -7,6 +7,7 @@ import (
 	stan "github.com/nats-io/stan.go"
 )
 
+// Публикация данных заказа в NATS
 func DemonstratePublishToNATS(sc stan.Conn) {
 	sampleData := Order{
 		OrderUID:    "345566",
@@ -45,6 +46,19 @@ func DemonstratePublishToNATS(sc stan.Conn) {
 				Brand:       "Vivienne Sabo",
 				Status:      202,
 			},
+			{
+				ChrtID:      523489234,
+				TrackNumber: "FRMEKFKE",
+				Price:       357,
+				RID:         "ac2222222a764ae0btest",
+				Name:        "Mqwerjkhw",
+				Sale:        21,
+				Size:        "1",
+				TotalPrice:  552,
+				NmID:        938287,
+				Brand:       "Qwerty Uiop",
+				Status:      200,
+			},
 		},
 		Locale:            "en",
 		InternalSignature: "",
@@ -55,20 +69,21 @@ func DemonstratePublishToNATS(sc stan.Conn) {
 		DateCreated:       "2021-11-26T06:22:19Z",
 		OofShard:          "1"}
 
+	// Попытка публикации sampleData в NATS
 	err := PublishToNATS(sc, "myChannel", sampleData)
 	if err != nil {
 		log.Printf("Error publishing to NATS: %v", err)
 	}
 
-	// Сериализуем sampleData в JSON
+	// Сериализация sampleData в JSON
 	jsonData, err := json.Marshal(sampleData)
 	if err != nil {
 		log.Fatalf("Error marshaling data to JSON: %v", err)
 		return
 	}
 
-	// Публикуем JSON на NATS Streaming канал
-	err = sc.Publish("myChannel", jsonData) // используем метод Publish из stan.Conn
+	// Публикация JSON в NATS Streaming канал
+	err = sc.Publish("myChannel", jsonData) // используется метод Publish из stan.Conn
 	if err != nil {
 		log.Printf("Error publishing to NATS: %v", err)
 	}

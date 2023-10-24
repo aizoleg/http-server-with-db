@@ -7,12 +7,13 @@ import (
 	_ "github.com/lib/pq" // Драйвер PostgreSQL
 )
 
+// Создает и возвращает соединение с PostgreSQL
 func ConnectToDB() (*sql.DB, error) {
 	connStr := "user=admin dbname=postgres sslmode=disable password=root host=127.0.0.1 port=5432"
 	return sql.Open("postgres", connStr)
 }
 
-// Функция для вставки данных в таблицу orders
+// Добавление нового заказа в таблицу orders БД
 func InsertOrderToDB(db *sql.DB, orderData *Order) error {
 	query := `
         INSERT INTO orders (OrderUID, TrackNumber, Entry, Locale, InternalSignature, CustomerID, DeliveryService, Shardkey, SmID, DateCreated, OofShard)
@@ -45,7 +46,7 @@ func InsertPaymentToDB(db *sql.DB, orderUID string, paymentData *Payment) error 
 	return err
 }
 
-// Функция для вставки данных в таблицу item
+// Добавление каждого товара из списка в БД
 func InsertItemsToDB(db *sql.DB, orderUID string, itemsData []Item) error {
 	query := `
         INSERT INTO item (order_id, chrtID, trackNumber, price, rid, name, sale, size, totalPrice, nmID, brand, status) 
@@ -62,7 +63,7 @@ func InsertItemsToDB(db *sql.DB, orderUID string, itemsData []Item) error {
 	return nil
 }
 
-// Функция, извлекающая все заказы из БД
+// Извлекаем и возвращаем все заказы из БД вместе с информацией о доставке, оплате и товарах
 func GetAllOrdersFromDB(db *sql.DB) ([]Order, error) {
 	ordersQuery := `
     SELECT ID, OrderUID, TrackNumber, Entry, Locale, InternalSignature, CustomerID, 
@@ -87,7 +88,7 @@ func GetAllOrdersFromDB(db *sql.DB) ([]Order, error) {
 			return nil, err
 		}
 
-		// Запрос информации о доставке для этого заказа
+		// Извлекаем детали доставки для текущего заказа
 		deliveryQuery := `
         SELECT name, phone, zip, city, address, region, email 
         FROM delivery 
@@ -101,7 +102,7 @@ func GetAllOrdersFromDB(db *sql.DB) ([]Order, error) {
 			order.Delivery = &delivery
 		}
 
-		// Запрос информации о платеже для этого заказа
+		// Извлекаем детали оплаты для текущего заказа
 		paymentQuery := `
         SELECT transaction, requestID, currency, provider, amount, paymentDt, 
         bank, deliveryCost, goodsTotal, customFee
@@ -119,7 +120,7 @@ func GetAllOrdersFromDB(db *sql.DB) ([]Order, error) {
 			order.Payment = &payment
 		}
 
-		// Запрос товаров для этого заказа
+		// Извлекаем все товары для текущего заказа
 		itemsQuery := `
         SELECT ChrtID, TrackNumber, Price, Rid, Name, Sale, Size, 
         TotalPrice, NmID, Brand, Status
@@ -159,7 +160,7 @@ func GetAllOrdersFromDB(db *sql.DB) ([]Order, error) {
 	return orders, nil
 }
 
-// Функция, заполняющая кэш
+// LoadCacheFromDB загружает все заказы из БД и заполняет кэш этими заказами
 func LoadCacheFromDB(db *sql.DB) error {
 	orders, err := GetAllOrdersFromDB(db)
 	if err != nil {
